@@ -4,353 +4,411 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>CJExpenses</title>
-<link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   :root {
-    --green-dark:  #2d5a3d;
-    --green-mid:   #4a7c5f;
-    --green-light: #d4e8dc;
-    --green-pale:  #f0f7f3;
-    --cream:       #fafaf8;
-    --text:        #2c3a2e;
-    --muted:       #7a9282;
-    --border:      #c8ddd0;
-    --white:       #ffffff;
-    --red:         #c0392b;
+    --bg:          #e8e0d0;
+    --bg-card:     #f0ead8;
+    --bg-input:    #ede7d6;
+    --green:       #2d5a3d;
+    --green-mid:   #3d7a54;
+    --green-light: #5a9e72;
+    --green-pale:  #c8dcd0;
+    --border:      #c4baa8;
+    --border-soft: #d4cdbf;
+    --text:        #1e2d22;
+    --muted:       #7a7060;
+    --red:         #8b2e2e;
+    --white:       #f7f2e8;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: 'Lato', sans-serif;
-    background: var(--cream);
+    font-family: 'Outfit', sans-serif;
+    background: var(--bg);
     color: var(--text);
     min-height: 100vh;
   }
 
-  /* ── Top nav ── */
+  /* ── Nav ─────────────────────────────────────────────────────────────────── */
   nav {
-    background: var(--green-dark);
-    padding: 0 40px;
+    background: var(--green);
+    height: 62px;
     display: flex;
     align-items: center;
-    gap: 32px;
-    height: 58px;
+    padding: 0 48px;
+    gap: 36px;
+    box-shadow: 0 2px 12px rgba(30,45,34,0.18);
   }
 
-  .nav-brand {
-    font-family: 'Merriweather', serif;
-    font-size: 1.15rem;
-    color: var(--white);
+  .brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    color: #f0ead8;
     margin-right: auto;
-    letter-spacing: 0.01em;
+    letter-spacing: 0.02em;
   }
 
   .nav-link {
-    color: rgba(255,255,255,0.75);
+    color: rgba(240,234,216,0.7);
     font-size: 0.9rem;
+    font-weight: 500;
     cursor: pointer;
-    padding: 6px 0;
+    padding-bottom: 3px;
     border-bottom: 2px solid transparent;
     transition: all 0.15s;
     text-decoration: none;
   }
-
   .nav-link:hover, .nav-link.active {
-    color: var(--white);
-    border-bottom-color: #8ec9a4;
+    color: #f0ead8;
+    border-bottom-color: var(--green-light);
   }
 
-  /* ── Page wrapper ── */
-  .page { display: none; max-width: 1000px; margin: 0 auto; padding: 40px 24px; }
+  /* ── Pages ───────────────────────────────────────────────────────────────── */
+  .page { display: none; max-width: 1020px; margin: 0 auto; padding: 44px 28px; }
   .page.active { display: block; }
-
-  .page-heading {
-    font-family: 'Merriweather', serif;
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--green-dark);
-    margin-bottom: 6px;
-  }
-
-  .page-sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 28px; }
 
   .page-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 28px;
+    align-items: center;
+    margin-bottom: 32px;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 14px;
   }
 
-  /* ── Buttons ── */
+  .page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.55rem;
+    color: var(--green);
+    margin-bottom: 4px;
+  }
+
+  .page-sub { color: var(--muted); font-size: 0.88rem; }
+
+  /* ── Buttons ─────────────────────────────────────────────────────────────── */
   .btn {
-    padding: 9px 20px;
-    border-radius: 6px;
-    font-family: 'Lato', sans-serif;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
     font-size: 0.875rem;
-    font-weight: 700;
+    padding: 9px 22px;
+    border-radius: 8px;
     cursor: pointer;
     border: none;
     transition: all 0.15s;
   }
-
-  .btn-primary { background: var(--green-dark); color: white; }
+  .btn-primary   { background: var(--green); color: #f0ead8; }
   .btn-primary:hover { background: var(--green-mid); }
-
-  .btn-outline {
-    background: white;
-    color: var(--green-dark);
-    border: 1.5px solid var(--green-dark);
+  .btn-secondary {
+    background: var(--bg-card);
+    color: var(--green);
+    border: 1.5px solid var(--border);
   }
-  .btn-outline:hover { background: var(--green-pale); }
+  .btn-secondary:hover { background: var(--green-pale); border-color: var(--green-mid); }
 
-  .btn-sm {
-    padding: 5px 12px;
-    font-size: 0.8rem;
-    border-radius: 5px;
-    font-weight: 700;
+  .action-btn {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 6px;
     cursor: pointer;
-    border: none;
-    transition: all 0.15s;
+    border: 1.5px solid;
+    transition: all 0.14s;
   }
+  .btn-edit   { color: var(--green); border-color: var(--green-pale); background: var(--bg); }
+  .btn-edit:hover { background: var(--green-pale); border-color: var(--green-mid); }
+  .btn-delete { color: var(--red); border-color: #d4b8b8; background: var(--bg); }
+  .btn-delete:hover { background: var(--red); color: #f7f2e8; border-color: var(--red); }
 
-  .btn-sm-edit {
-    background: var(--green-pale);
-    color: var(--green-dark);
-    border: 1px solid var(--border);
-  }
-  .btn-sm-edit:hover { background: var(--green-light); }
-
-  .btn-sm-delete { background: #fdf0ee; color: var(--red); border: 1px solid #e8c5c2; }
-  .btn-sm-delete:hover { background: var(--red); color: white; }
-
-  /* ── Cards ── */
-  .card {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 24px;
-  }
-
-  /* ── Stat row ── */
+  /* ── Stat cards ──────────────────────────────────────────────────────────── */
   .stats-row {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+    gap: 18px;
     margin-bottom: 24px;
   }
 
   .stat-card {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 20px 24px;
-    border-top: 3px solid var(--green-mid);
-  }
-
-  .stat-label {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    color: var(--muted);
-    margin-bottom: 8px;
-  }
-
-  .stat-value {
-    font-family: 'Merriweather', serif;
-    font-size: 1.6rem;
-    color: var(--green-dark);
-  }
-
-  /* ── Charts ── */
-  .charts-row {
-    display: grid;
-    grid-template-columns: 3fr 2fr;
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-
-  .card-title {
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    color: var(--muted);
-    margin-bottom: 16px;
-  }
-
-  .chart-wrap { height: 200px; position: relative; }
-
-  /* ── Table ── */
-  .table-wrap {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 22px 26px;
+    position: relative;
     overflow: hidden;
   }
 
-  .table-top {
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--green), var(--green-light));
+  }
+
+  .stat-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .stat-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.9rem;
+    color: var(--green);
+    line-height: 1;
+  }
+
+  /* ── Charts ──────────────────────────────────────────────────────────────── */
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1.7fr 1fr;
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .card-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--muted);
+    margin-bottom: 18px;
+  }
+
+  .chart-box { height: 210px; position: relative; }
+
+  /* ── Table ───────────────────────────────────────────────────────────────── */
+  .table-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .table-toolbar {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border);
+    align-items: center;
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--border-soft);
     flex-wrap: wrap;
     gap: 10px;
   }
 
-  .filters { display: flex; gap: 8px; flex-wrap: wrap; }
-
-  select, input[type="month"], input[type="text"],
-  input[type="number"], input[type="date"], textarea {
-    font-family: 'Lato', sans-serif;
-    font-size: 0.875rem;
-    color: var(--text);
-    background: var(--white);
-    border: 1.5px solid var(--border);
-    border-radius: 6px;
-    padding: 7px 11px;
-    outline: none;
-    transition: border-color 0.15s;
-    width: 100%;
+  .toolbar-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--muted);
   }
 
-  select:focus, input:focus, textarea:focus { border-color: var(--green-mid); }
+  .filters { display: flex; gap: 8px; }
+
+  select, input[type="month"] {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.85rem;
+    color: var(--text);
+    background: var(--bg-input);
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    padding: 6px 10px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  select:focus, input[type="month"]:focus { border-color: var(--green-mid); }
 
   table { width: 100%; border-collapse: collapse; }
 
   th {
     text-align: left;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.07em;
+    letter-spacing: 0.09em;
     color: var(--muted);
-    padding: 10px 20px;
-    border-bottom: 1px solid var(--border);
-    background: var(--green-pale);
+    padding: 10px 22px;
+    border-bottom: 1px solid var(--border-soft);
+    background: rgba(200,220,208,0.3);
   }
 
-  td { padding: 13px 20px; font-size: 0.9rem; border-bottom: 1px solid var(--border); }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: var(--green-pale); }
+  td {
+    padding: 14px 22px;
+    font-size: 0.88rem;
+    border-bottom: 1px solid var(--border-soft);
+    vertical-align: middle;
+  }
 
-  .amount { font-weight: 700; color: var(--green-dark); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(200,220,208,0.25); }
+
+  .merchant-name { font-weight: 600; color: var(--text); }
+  .merchant-desc { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+  .amount-cell { font-weight: 700; color: var(--green); font-size: 0.95rem; }
+  .date-cell { color: var(--muted); }
 
   .badge {
     display: inline-block;
     padding: 3px 10px;
     border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    background: var(--green-light);
-    color: var(--green-dark);
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: var(--green-pale);
+    color: var(--green);
+    border: 1px solid rgba(93,158,114,0.3);
   }
 
-  .receipt-link { color: var(--green-mid); font-size: 0.85rem; }
-  .action-btns { display: flex; gap: 6px; }
+  .receipt-link { color: var(--green-mid); font-size: 0.82rem; font-weight: 500; }
+  .action-cell { display: flex; gap: 7px; }
 
-  /* ── Modal ── */
+  .no-data {
+    text-align: center;
+    padding: 52px 20px;
+    color: var(--muted);
+  }
+  .no-data-icon { font-size: 2rem; margin-bottom: 10px; }
+
+  /* ── Modals ──────────────────────────────────────────────────────────────── */
   .overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(44, 58, 46, 0.45);
-    z-index: 100;
+    background: rgba(20,34,24,0.5);
+    backdrop-filter: blur(3px);
+    z-index: 200;
     align-items: center;
     justify-content: center;
   }
   .overlay.open { display: flex; }
 
   .modal {
-    background: var(--white);
-    border-radius: 12px;
-    padding: 32px;
-    width: 460px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 34px;
+    width: 470px;
     max-width: 95vw;
-    animation: pop 0.18s ease;
+    animation: rise 0.2s ease;
   }
 
-  @keyframes pop {
-    from { opacity: 0; transform: scale(0.97) translateY(10px); }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(16px) scale(0.98); }
     to   { opacity: 1; transform: none; }
   }
 
-  .modal h2 {
-    font-family: 'Merriweather', serif;
-    font-size: 1.1rem;
-    color: var(--green-dark);
-    margin-bottom: 20px;
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    color: var(--green);
+    margin-bottom: 22px;
   }
 
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .field { margin-bottom: 14px; }
-  .field label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
-  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+  .field { margin-bottom: 15px; }
 
-  /* ── Upload zone ── */
+  .field label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .field input, .field select, .field textarea {
+    width: 100%;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text);
+    background: var(--bg-input);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--green-mid); }
+  .field textarea { resize: vertical; min-height: 64px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 22px;
+  }
+
+  /* ── Drop zone ───────────────────────────────────────────────────────────── */
   .drop-zone {
     border: 2px dashed var(--border);
-    border-radius: 8px;
-    padding: 28px 20px;
+    border-radius: 9px;
+    padding: 30px;
     text-align: center;
     cursor: pointer;
-    transition: all 0.15s;
-    margin-bottom: 14px;
     color: var(--muted);
-    font-size: 0.9rem;
+    transition: all 0.15s;
+    margin-bottom: 16px;
+    font-size: 0.88rem;
+    line-height: 1.6;
   }
-  .drop-zone:hover, .drop-zone.over { border-color: var(--green-mid); background: var(--green-pale); }
-  .drop-zone .icon { font-size: 1.8rem; margin-bottom: 6px; }
+  .drop-zone:hover, .drop-zone.over { border-color: var(--green-mid); background: rgba(90,158,114,0.06); color: var(--green); }
+  .drop-icon { font-size: 1.7rem; display: block; margin-bottom: 6px; }
   #fileInput { display: none; }
+  .file-chosen { font-size: 0.83rem; color: var(--green-mid); font-weight: 500; margin-bottom: 14px; display: none; }
 
-  /* ── Toast ── */
-  .toast {
+  /* ── Toast ───────────────────────────────────────────────────────────────── */
+  #toast {
     position: fixed;
-    bottom: 24px;
-    right: 24px;
-    background: var(--green-dark);
-    color: white;
-    padding: 12px 20px;
-    border-radius: 8px;
+    bottom: 26px;
+    right: 26px;
+    padding: 12px 22px;
+    border-radius: 9px;
     font-size: 0.875rem;
-    z-index: 999;
+    font-weight: 500;
     opacity: 0;
-    transition: opacity 0.2s;
     pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 999;
   }
-  .toast.show { opacity: 1; }
-  .toast.err { background: var(--red); }
-
-  /* ── Empty state ── */
-  .empty { text-align: center; padding: 48px 20px; color: var(--muted); }
-  .empty .icon { font-size: 2.2rem; margin-bottom: 10px; }
+  #toast.show { opacity: 1; }
+  #toast.ok  { background: var(--green); color: #f0ead8; }
+  #toast.err { background: var(--red);   color: #f7f2e8; }
 </style>
 </head>
 <body>
 
-<!-- Top nav -->
 <nav>
-  <span class="nav-brand">CJExpenses</span>
-  <a class="nav-link active" onclick="nav('dashboard', this)">Dashboard</a>
-  <a class="nav-link" onclick="nav('expenses', this)">Expenses</a>
-  <a class="nav-link" onclick="openAdd()">+ Add</a>
-  <a class="nav-link" onclick="openUpload()">↑ Receipt</a>
+  <span class="brand">CJExpenses</span>
+  <a class="nav-link active" onclick="goTo('dashboard', this)">Dashboard</a>
+  <a class="nav-link"        onclick="goTo('expenses', this)">Expenses</a>
+  <a class="nav-link"        onclick="openAdd()">+ Add</a>
+  <a class="nav-link"        onclick="openUpload()">↑ Receipt</a>
 </nav>
 
-<!-- Dashboard page -->
-<div id="page-dashboard" class="page active">
+<!-- ── Dashboard ─────────────────────────────────────────────────────────── -->
+<div class="page active" id="page-dashboard">
   <div class="page-header">
     <div>
-      <div class="page-heading">Dashboard</div>
+      <div class="page-title">Dashboard</div>
       <div class="page-sub">Your spending at a glance</div>
     </div>
     <div style="display:flex;gap:10px">
-      <button class="btn btn-outline" onclick="openUpload()">↑ Scan Receipt</button>
-      <button class="btn btn-primary" onclick="openAdd()">+ Add Expense</button>
+      <button class="btn btn-secondary" onclick="openUpload()">↑ Scan Receipt</button>
+      <button class="btn btn-primary"   onclick="openAdd()">+ Add Expense</button>
     </div>
   </div>
 
@@ -371,30 +429,31 @@
 
   <div class="charts-row">
     <div class="card">
-      <div class="card-title">Monthly Spend</div>
-      <div class="chart-wrap"><canvas id="monthlyChart"></canvas></div>
+      <div class="card-label">Monthly Spend</div>
+      <div class="chart-box"><canvas id="c-monthly"></canvas></div>
     </div>
     <div class="card">
-      <div class="card-title">By Category</div>
-      <div class="chart-wrap"><canvas id="catChart"></canvas></div>
+      <div class="card-label">By Category</div>
+      <div class="chart-box"><canvas id="c-cat"></canvas></div>
     </div>
   </div>
 </div>
 
-<!-- Expenses page -->
-<div id="page-expenses" class="page">
+<!-- ── Expenses ───────────────────────────────────────────────────────────── -->
+<div class="page" id="page-expenses">
   <div class="page-header">
     <div>
-      <div class="page-heading">All Expenses</div>
-      <div class="page-sub">View, edit, and delete your transactions</div>
+      <div class="page-title">All Expenses</div>
+      <div class="page-sub">Add, edit, and delete your transactions</div>
     </div>
     <button class="btn btn-primary" onclick="openAdd()">+ Add Expense</button>
   </div>
 
-  <div class="table-wrap">
-    <div class="table-top">
+  <div class="table-card">
+    <div class="table-toolbar">
+      <span class="toolbar-label">Transactions</span>
       <div class="filters">
-        <select id="f-cat" onchange="loadExpenses()" style="width:auto">
+        <select id="f-cat" onchange="loadTable()">
           <option value="">All Categories</option>
           <option>Food &amp; Dining</option><option>Transportation</option>
           <option>Shopping</option><option>Entertainment</option>
@@ -403,7 +462,7 @@
           <option>Education</option><option>Business</option>
           <option>Personal Care</option><option>Uncategorized</option>
         </select>
-        <input type="month" id="f-month" onchange="loadExpenses()" style="width:auto" />
+        <input type="month" id="f-month" onchange="loadTable()" />
       </div>
     </div>
     <table>
@@ -413,22 +472,22 @@
           <th>Category</th><th>Receipt</th><th>Actions</th>
         </tr>
       </thead>
-      <tbody id="exp-body">
-        <tr><td colspan="6"><div class="empty"><div class="icon">🌿</div>Loading…</div></td></tr>
+      <tbody id="tbl-body">
+        <tr><td colspan="6"><div class="no-data"><div class="no-data-icon">🌿</div>Loading…</div></td></tr>
       </tbody>
     </table>
   </div>
 </div>
 
-<!-- Add modal -->
-<div class="overlay" id="add-overlay">
+<!-- ── Add Modal ─────────────────────────────────────────────────────────── -->
+<div class="overlay" id="ov-add">
   <div class="modal">
-    <h2>Add Expense</h2>
-    <div class="form-row">
-      <div class="field"><label>Merchant *</label><input id="a-merchant" type="text" placeholder="e.g. Whole Foods" /></div>
+    <div class="modal-title">Add Expense</div>
+    <div class="two-col">
+      <div class="field"><label>Merchant *</label><input id="a-merchant" type="text" placeholder="e.g. Trader Joe's" /></div>
       <div class="field"><label>Amount ($) *</label><input id="a-amount" type="number" step="0.01" min="0.01" placeholder="0.00" /></div>
     </div>
-    <div class="form-row">
+    <div class="two-col">
       <div class="field"><label>Date *</label><input id="a-date" type="date" /></div>
       <div class="field"><label>Category</label>
         <select id="a-cat">
@@ -439,24 +498,24 @@
         </select>
       </div>
     </div>
-    <div class="field"><label>Description</label><textarea id="a-desc" rows="2" placeholder="Optional notes…"></textarea></div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('add-overlay')">Cancel</button>
-      <button class="btn btn-primary" onclick="submitAdd()">Save</button>
+    <div class="field"><label>Description</label><textarea id="a-desc" placeholder="Optional notes…"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeOv('ov-add')">Cancel</button>
+      <button class="btn btn-primary" onclick="doAdd()">Save Expense</button>
     </div>
   </div>
 </div>
 
-<!-- Edit modal -->
-<div class="overlay" id="edit-overlay">
+<!-- ── Edit Modal ────────────────────────────────────────────────────────── -->
+<div class="overlay" id="ov-edit">
   <div class="modal">
-    <h2>Edit Expense</h2>
+    <div class="modal-title">Edit Expense</div>
     <input type="hidden" id="e-id" />
-    <div class="form-row">
+    <div class="two-col">
       <div class="field"><label>Merchant *</label><input id="e-merchant" type="text" /></div>
       <div class="field"><label>Amount ($) *</label><input id="e-amount" type="number" step="0.01" min="0.01" /></div>
     </div>
-    <div class="form-row">
+    <div class="two-col">
       <div class="field"><label>Date *</label><input id="e-date" type="date" /></div>
       <div class="field"><label>Category</label>
         <select id="e-cat">
@@ -467,26 +526,26 @@
         </select>
       </div>
     </div>
-    <div class="field"><label>Description</label><textarea id="e-desc" rows="2"></textarea></div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('edit-overlay')">Cancel</button>
-      <button class="btn btn-primary" onclick="submitEdit()">Save Changes</button>
+    <div class="field"><label>Description</label><textarea id="e-desc"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeOv('ov-edit')">Cancel</button>
+      <button class="btn btn-primary" onclick="doEdit()">Save Changes</button>
     </div>
   </div>
 </div>
 
-<!-- Upload modal -->
-<div class="overlay" id="upload-overlay">
+<!-- ── Upload Modal ──────────────────────────────────────────────────────── -->
+<div class="overlay" id="ov-upload">
   <div class="modal">
-    <h2>Scan a Receipt</h2>
-    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('fileInput').click()">
-      <div class="icon">🧾</div>
-      <div>Click to upload or drag &amp; drop</div>
-      <div style="font-size:0.8rem;margin-top:4px">PNG, JPG, PDF, TIFF</div>
+    <div class="modal-title">Scan a Receipt</div>
+    <div class="drop-zone" id="dz" onclick="document.getElementById('fileInput').click()">
+      <span class="drop-icon">🧾</span>
+      Click to upload or drag &amp; drop<br>
+      <span style="font-size:0.78rem">PNG · JPG · PDF · TIFF</span>
     </div>
-    <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.pdf,.tiff" onchange="onFilePick(event)" />
-    <div id="file-name" style="font-size:0.85rem;color:var(--green-mid);margin-bottom:12px;display:none"></div>
-    <div class="form-row">
+    <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.pdf,.tiff" onchange="pickFile(event)" />
+    <div class="file-chosen" id="file-label"></div>
+    <div class="two-col">
       <div class="field"><label>Category</label>
         <select id="u-cat">
           <option value="">Auto-detect</option>
@@ -496,256 +555,229 @@
           <option>Business</option><option>Personal Care</option>
         </select>
       </div>
-      <div class="field"><label>Description</label><input type="text" id="u-desc" placeholder="Optional" /></div>
+      <div class="field"><label>Description</label><input id="u-desc" type="text" placeholder="Optional" /></div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('upload-overlay')">Cancel</button>
-      <button class="btn btn-primary" id="upload-btn" onclick="submitUpload()">Process Receipt</button>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeOv('ov-upload')">Cancel</button>
+      <button class="btn btn-primary" id="u-btn" onclick="doUpload()">Process Receipt</button>
     </div>
   </div>
 </div>
 
-<!-- Toast -->
-<div class="toast" id="toast"></div>
+<div id="toast"></div>
 
 <script>
-// ── Helpers ───────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
 
+// ── API ───────────────────────────────────────────────────────────────────────
 async function api(path, opts = {}) {
   const r = await fetch(path, opts);
   const d = await r.json();
-  if (!r.ok) throw new Error(d.error || 'Request failed');
+  if (!r.ok) throw new Error(d.error || 'Error');
   return d;
 }
 
-function fmt(n) {
-  return '$' + parseFloat(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+// ── Utilities ─────────────────────────────────────────────────────────────────
+const fmt = n => '$' + parseFloat(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+let _toastT;
+function showToast(msg, err = false) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'show ' + (err ? 'err' : 'ok');
+  clearTimeout(_toastT);
+  _toastT = setTimeout(() => t.className = '', 3000);
 }
 
-function esc(s) {
-  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-let toastTimer;
-function toast(msg, err = false) {
-  const el = $('toast');
-  el.textContent = msg;
-  el.className = 'toast show' + (err ? ' err' : '');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.className = 'toast', 3200);
-}
-
-// ── Nav ───────────────────────────────────────────────────────────────────────
-function nav(page, el) {
+// ── Navigation ────────────────────────────────────────────────────────────────
+function goTo(page, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
   $('page-' + page).classList.add('active');
   if (el) el.classList.add('active');
-  if (page === 'expenses') loadExpenses();
+  if (page === 'expenses') loadTable();
 }
 
 // ── Modals ────────────────────────────────────────────────────────────────────
-function openModal(id) { $(id).classList.add('open'); }
-function closeModal(id) { $(id).classList.remove('open'); }
+const openOv  = id => $(id).classList.add('open');
+const closeOv = id => $(id).classList.remove('open');
 
-document.querySelectorAll('.overlay').forEach(o => {
-  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
-});
+document.querySelectorAll('.overlay').forEach(o =>
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); })
+);
 
 function openAdd() {
   $('a-merchant').value = '';
-  $('a-amount').value = '';
-  $('a-date').value = new Date().toISOString().slice(0, 10);
-  $('a-desc').value = '';
-  openModal('add-overlay');
+  $('a-amount').value   = '';
+  $('a-date').value     = new Date().toISOString().slice(0, 10);
+  $('a-desc').value     = '';
+  $('a-cat').selectedIndex = 0;
+  openOv('ov-add');
 }
 
 function openEdit(e) {
-  $('e-id').value = e.id;
+  $('e-id').value       = e.id;
   $('e-merchant').value = e.merchant;
-  $('e-amount').value = e.amount;
-  $('e-date').value = e.date;
-  $('e-desc').value = e.description || '';
-  for (const opt of $('e-cat').options) {
-    if (opt.value === e.category) { opt.selected = true; break; }
-  }
-  openModal('edit-overlay');
+  $('e-amount').value   = e.amount;
+  $('e-date').value     = e.date;
+  $('e-desc').value     = e.description || '';
+  for (const o of $('e-cat').options) if (o.value === e.category) { o.selected = true; break; }
+  openOv('ov-edit');
 }
 
 function openUpload() {
   $('fileInput').value = '';
-  $('file-name').style.display = 'none';
-  openModal('upload-overlay');
+  $('file-label').style.display = 'none';
+  openOv('ov-upload');
 }
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
-let mChart, cChart;
+let MC, CC;
 
-async function loadDashboard() {
+async function loadDash() {
   try {
     const s = await api('/api/expenses/summary');
     $('s-total').textContent = fmt(s.total);
     $('s-count').textContent = s.count;
-    $('s-avg').textContent = s.count ? fmt(s.total / s.count) : '$0.00';
-    buildMonthly(s.monthly);
-    buildCat(s.by_category);
+    $('s-avg').textContent   = s.count ? fmt(s.total / s.count) : '$0.00';
+    drawMonthly(s.monthly);
+    drawCat(s.by_category);
   } catch(e) { console.error(e); }
 }
 
-function buildMonthly(data) {
-  if (mChart) mChart.destroy();
-  const labels = data.map(m => {
-    const d = new Date(m.year, m.month - 1);
-    return d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-  });
-  mChart = new Chart($('monthlyChart'), {
+function drawMonthly(data) {
+  if (MC) MC.destroy();
+  MC = new Chart($('c-monthly'), {
     type: 'bar',
     data: {
-      labels,
+      labels: data.map(m => new Date(m.year, m.month-1).toLocaleDateString('en-US',{month:'short',year:'2-digit'})),
       datasets: [{
         data: data.map(m => m.total),
-        backgroundColor: 'rgba(74, 124, 95, 0.25)',
-        borderColor: '#4a7c5f',
+        backgroundColor: 'rgba(45,90,61,0.2)',
+        borderColor: '#3d7a54',
         borderWidth: 2,
-        borderRadius: 5,
+        borderRadius: 6,
       }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { grid: { color: '#e8f0eb' }, ticks: { color: '#7a9282', font: { size: 11 } } },
-        y: { grid: { color: '#e8f0eb' }, ticks: { color: '#7a9282', font: { size: 11 }, callback: v => '$' + v } },
+        x: { grid: { color: 'rgba(196,186,168,0.4)' }, ticks: { color: '#7a7060', font: { size: 11 } } },
+        y: { grid: { color: 'rgba(196,186,168,0.4)' }, ticks: { color: '#7a7060', font: { size: 11 }, callback: v => '$'+v } },
       }
     }
   });
 }
 
-function buildCat(cats) {
-  if (cChart) cChart.destroy();
-  const palette = ['#4a7c5f','#7aad8e','#a8cdb8','#2d5a3d','#d4e8dc','#5d9470','#b8dac6','#3a7050'];
-  cChart = new Chart($('catChart'), {
+function drawCat(cats) {
+  if (CC) CC.destroy();
+  const colors = ['#2d5a3d','#4a7c5f','#6fa882','#9dcaad','#c8dcd0','#3d7a54','#5a9e72','#8bbfa0'];
+  CC = new Chart($('c-cat'), {
     type: 'doughnut',
     data: {
       labels: cats.map(c => c.category),
-      datasets: [{ data: cats.map(c => c.total), backgroundColor: palette, borderWidth: 0, hoverOffset: 5 }]
+      datasets: [{ data: cats.map(c => c.total), backgroundColor: colors, borderWidth: 2, borderColor: '#f0ead8', hoverOffset: 6 }]
     },
     options: {
-      responsive: true, maintainAspectRatio: false, cutout: '65%',
-      plugins: { legend: { position: 'right', labels: { color: '#7a9282', font: { size: 11 }, boxWidth: 10, padding: 8 } } }
+      responsive: true, maintainAspectRatio: false, cutout: '62%',
+      plugins: { legend: { position: 'right', labels: { color: '#7a7060', font: { size: 11 }, boxWidth: 10, padding: 9 } } }
     }
   });
 }
 
 // ── Expenses table ────────────────────────────────────────────────────────────
-async function loadExpenses() {
+async function loadTable() {
   let url = '/api/expenses?';
-  const cat = $('f-cat').value, month = $('f-month').value;
+  const cat = $('f-cat').value, mo = $('f-month').value;
   if (cat) url += `category=${encodeURIComponent(cat)}&`;
-  if (month) url += `month=${month}&`;
+  if (mo)  url += `month=${mo}&`;
 
-  $('exp-body').innerHTML = '<tr><td colspan="6"><div class="empty"><div class="icon">🌿</div>Loading…</div></td></tr>';
+  $('tbl-body').innerHTML = `<tr><td colspan="6"><div class="no-data"><div class="no-data-icon">🌿</div>Loading…</div></td></tr>`;
   try {
-    const list = await api(url);
-    if (!list.length) {
-      $('exp-body').innerHTML = '<tr><td colspan="6"><div class="empty"><div class="icon">🌿</div>No expenses yet.</div></td></tr>';
+    const rows = await api(url);
+    if (!rows.length) {
+      $('tbl-body').innerHTML = `<tr><td colspan="6"><div class="no-data"><div class="no-data-icon">🌿</div>No expenses found.</div></td></tr>`;
       return;
     }
-    $('exp-body').innerHTML = list.map(e => `
+    $('tbl-body').innerHTML = rows.map(e => `
       <tr>
         <td>
-          <strong>${esc(e.merchant)}</strong>
-          ${e.description ? `<br><span style="color:var(--muted);font-size:0.8rem">${esc(e.description)}</span>` : ''}
+          <div class="merchant-name">${esc(e.merchant)}</div>
+          ${e.description ? `<div class="merchant-desc">${esc(e.description)}</div>` : ''}
         </td>
-        <td class="amount">${fmt(e.amount)}</td>
-        <td style="color:var(--muted)">${e.date}</td>
+        <td class="amount-cell">${fmt(e.amount)}</td>
+        <td class="date-cell">${e.date}</td>
         <td><span class="badge">${esc(e.category)}</span></td>
-        <td>${e.receipt_url
-          ? `<a class="receipt-link" href="${e.receipt_url}" target="_blank">View ↗</a>`
-          : `<span style="color:var(--muted)">—</span>`}
-        </td>
+        <td>${e.receipt_url ? `<a class="receipt-link" href="${e.receipt_url}" target="_blank">View ↗</a>` : `<span style="color:var(--muted)">—</span>`}</td>
         <td>
-          <div class="action-btns">
-            <button class="btn-sm btn-sm-edit" onclick='openEdit(${JSON.stringify(e)})'>Edit</button>
-            <button class="btn-sm btn-sm-delete" onclick="deleteExpense(${e.id})">Delete</button>
+          <div class="action-cell">
+            <button class="action-btn btn-edit"   onclick='openEdit(${JSON.stringify(e)})'>Edit</button>
+            <button class="action-btn btn-delete" onclick="doDelete(${e.id})">Delete</button>
           </div>
         </td>
       </tr>`).join('');
   } catch(e) {
-    $('exp-body').innerHTML = `<tr><td colspan="6" style="padding:24px;color:var(--red);text-align:center">${e.message}</td></tr>`;
+    $('tbl-body').innerHTML = `<tr><td colspan="6" style="padding:24px;text-align:center;color:var(--red)">${e.message}</td></tr>`;
   }
 }
 
 // ── CRUD ──────────────────────────────────────────────────────────────────────
-async function submitAdd() {
-  const merchant = $('a-merchant').value.trim();
-  const amount   = $('a-amount').value;
-  const date     = $('a-date').value;
-  if (!merchant || !amount || !date) { toast('Please fill all required fields', true); return; }
+async function doAdd() {
+  const m = $('a-merchant').value.trim(), a = $('a-amount').value, d = $('a-date').value;
+  if (!m || !a || !d) { showToast('Please fill all required fields', true); return; }
   try {
     await api('/api/expenses', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ merchant, amount: parseFloat(amount), date, category: $('a-cat').value, description: $('a-desc').value }),
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ merchant: m, amount: parseFloat(a), date: d, category: $('a-cat').value, description: $('a-desc').value }),
     });
-    closeModal('add-overlay');
-    toast('Expense added!');
-    loadDashboard();
-    if ($('page-expenses').classList.contains('active')) loadExpenses();
-  } catch(e) { toast(e.message, true); }
+    closeOv('ov-add'); showToast('Expense added!'); loadDash();
+    if ($('page-expenses').classList.contains('active')) loadTable();
+  } catch(e) { showToast(e.message, true); }
 }
 
-async function submitEdit() {
-  const id       = $('e-id').value;
-  const merchant = $('e-merchant').value.trim();
-  const amount   = $('e-amount').value;
-  const date     = $('e-date').value;
-  if (!merchant || !amount || !date) { toast('Please fill all required fields', true); return; }
+async function doEdit() {
+  const id = $('e-id').value, m = $('e-merchant').value.trim(), a = $('e-amount').value, d = $('e-date').value;
+  if (!m || !a || !d) { showToast('Please fill all required fields', true); return; }
   try {
     await api(`/api/expenses/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ merchant, amount: parseFloat(amount), date, category: $('e-cat').value, description: $('e-desc').value }),
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ merchant: m, amount: parseFloat(a), date: d, category: $('e-cat').value, description: $('e-desc').value }),
     });
-    closeModal('edit-overlay');
-    toast('Expense updated!');
-    loadExpenses();
-    loadDashboard();
-  } catch(e) { toast(e.message, true); }
+    closeOv('ov-edit'); showToast('Expense updated!'); loadTable(); loadDash();
+  } catch(e) { showToast(e.message, true); }
 }
 
-async function deleteExpense(id) {
+async function doDelete(id) {
   if (!confirm('Delete this expense?')) return;
   try {
     await api(`/api/expenses/${id}`, { method: 'DELETE' });
-    toast('Deleted.');
-    loadExpenses();
-    loadDashboard();
-  } catch(e) { toast(e.message, true); }
+    showToast('Deleted.'); loadTable(); loadDash();
+  } catch(e) { showToast(e.message, true); }
 }
 
 // ── Upload ────────────────────────────────────────────────────────────────────
-function onFilePick(e) {
+function pickFile(e) {
   const f = e.target.files[0];
   if (!f) return;
-  $('file-name').textContent = '✓ ' + f.name;
-  $('file-name').style.display = 'block';
+  $('file-label').textContent = '✓ ' + f.name;
+  $('file-label').style.display = 'block';
 }
 
-const dz = $('drop-zone');
+const dz = $('dz');
 dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
 dz.addEventListener('dragleave', () => dz.classList.remove('over'));
 dz.addEventListener('drop', e => {
   e.preventDefault(); dz.classList.remove('over');
   const f = e.dataTransfer.files[0];
-  if (f) { $('fileInput').files = e.dataTransfer.files; $('file-name').textContent = '✓ ' + f.name; $('file-name').style.display = 'block'; }
+  if (f) { $('fileInput').files = e.dataTransfer.files; $('file-label').textContent = '✓ ' + f.name; $('file-label').style.display = 'block'; }
 });
 
-async function submitUpload() {
+async function doUpload() {
   const file = $('fileInput').files[0];
-  if (!file) { toast('Please select a file first', true); return; }
-  const btn = $('upload-btn');
+  if (!file) { showToast('Please select a file first', true); return; }
+  const btn = $('u-btn');
   btn.textContent = 'Processing…'; btn.disabled = true;
   const fd = new FormData();
   fd.append('file', file);
@@ -754,15 +786,14 @@ async function submitUpload() {
   try {
     const r = await fetch('/api/upload', { method: 'POST', body: fd }).then(r => r.json());
     if (r.error) throw new Error(r.error);
-    closeModal('upload-overlay');
-    toast(r.warning || 'Receipt scanned and saved!', !!r.warning);
-    loadDashboard();
-  } catch(e) { toast(e.message, true); }
+    closeOv('ov-upload');
+    showToast(r.warning || 'Receipt scanned and saved!', !!r.warning);
+    loadDash();
+  } catch(e) { showToast(e.message, true); }
   finally { btn.textContent = 'Process Receipt'; btn.disabled = false; }
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────────
-loadDashboard();
+loadDash();
 </script>
 </body>
 </html>
