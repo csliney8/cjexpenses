@@ -1,0 +1,21 @@
+cd ~/cjexpenses
+cat > .gitignore <<'EOF'
+# Environment
+.env
+.env.local
+**/.env
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+EOF
