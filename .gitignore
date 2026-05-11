@@ -1,5 +1,3 @@
-cd ~/cjexpenses
-cat > .gitignore <<'EOF'
 # Environment
 .env
 .env.local
