@@ -264,9 +264,11 @@ Auth required: Yes
 Rate limit: 10 per minute
 
 Request body (multipart/form-data):
-- file (required): image file (PNG, JPG, PDF, or TIFF)
+- file (required): image file (PNG, JPG, PDF, or TIFF), max 10 MB
 - category (optional): override the auto-detected category
 - description (optional): optional note
+
+Returns 413 with `{ "error": "File too large. Max size is 10 MB." }` if the upload exceeds the limit.
 
 Response 201:
 

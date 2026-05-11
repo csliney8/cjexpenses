@@ -1,10 +1,12 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_cors import CORS
 from flask_login import LoginManager
 import os
+
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
 
 db = SQLAlchemy()
 limiter = Limiter(key_func=get_remote_address, default_limits=["200 per day", "50 per hour"])
@@ -22,6 +24,7 @@ def create_app():
     )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-change-me")
+    app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_BYTES
 
     # Session cookie settings
     app.config["SESSION_COOKIE_HTTPONLY"] = True
@@ -57,6 +60,11 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(expenses_bp, url_prefix="/api")
     app.register_blueprint(uploads_bp, url_prefix="/api")
+
+    @app.errorhandler(413)
+    def file_too_large(_):
+        mb = MAX_UPLOAD_BYTES // (1024 * 1024)
+        return jsonify({"error": f"File too large. Max size is {mb} MB."}), 413
 
     # Create tables on first launch
     with app.app_context():
