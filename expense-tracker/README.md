@@ -28,7 +28,7 @@ Visit http://localhost:5000.
 
 ## Live URL
 
-http://YOUR_EC2_PUBLIC_IP
+http://18.224.182.149
 
 # API Documentation
 
