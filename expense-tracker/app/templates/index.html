@@ -711,7 +711,7 @@ async function loadTable() {
         <td class="amount-cell">${fmt(e.amount)}</td>
         <td class="date-cell">${e.date}</td>
         <td><span class="badge">${esc(e.category)}</span></td>
-        <td>${e.receipt_url ? `<a class="receipt-link" href="${e.receipt_url}" target="_blank">View ↗</a>` : `<span style="color:var(--muted)">—</span>`}</td>
+        <td>${e.receipt_url ? `<a class="receipt-link" href="/api/expenses/${e.id}/receipt" target="_blank">View ↗</a>` : `<span style="color:var(--muted)">—</span>`}</td>
         <td>
           <div class="action-cell">
             <button class="action-btn btn-edit"   onclick='openEdit(${JSON.stringify(e)})'>Edit</button>

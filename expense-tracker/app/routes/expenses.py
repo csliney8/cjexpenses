@@ -1,4 +1,5 @@
-from flask import Blueprint, jsonify, request
+import boto3
+from flask import Blueprint, jsonify, request, current_app, redirect
 from flask_login import login_required, current_user
 from datetime import datetime, date
 from sqlalchemy import extract, func
@@ -121,6 +122,37 @@ def update_expense(expense_id):
     expense.updated_at = datetime.utcnow()
     db.session.commit()
     return jsonify(expense.to_dict())
+
+
+# Generate a short-lived presigned S3 URL for the receipt image
+@expenses_bp.route("/expenses/<int:expense_id>/receipt", methods=["GET"])
+@login_required
+@limiter.limit("60 per minute")
+def get_receipt(expense_id):
+    expense = Expense.query.filter_by(id=expense_id, user_id=current_user.id).first_or_404()
+    if not expense.receipt_url:
+        return jsonify({"error": "No receipt for this expense"}), 404
+
+    bucket = current_app.config.get("S3_BUCKET", "")
+    if not bucket:
+        return jsonify({"error": "S3_BUCKET not configured"}), 500
+
+    marker = ".amazonaws.com/"
+    if marker not in expense.receipt_url:
+        return jsonify({"error": "Invalid receipt URL"}), 500
+    key = expense.receipt_url.split(marker, 1)[1]
+
+    s3 = boto3.client("s3", region_name=current_app.config["AWS_REGION"])
+    try:
+        presigned = s3.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": bucket, "Key": key},
+            ExpiresIn=300,
+        )
+    except Exception as exc:
+        return jsonify({"error": f"Failed to generate URL: {str(exc)}"}), 500
+
+    return redirect(presigned)
 
 
 # Delete expense (only if owned by current user)
