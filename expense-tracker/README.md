@@ -1,317 +1,315 @@
-# CJExpenses — Automated Expense Tracker
-**Caden Sliney & Jack Vermaak**
+# CJExpenses
 
-A full-stack expense tracking web application deployed on AWS using **Path A (Traditional)** architecture:
-EC2 + Docker + RDS (PostgreSQL) + S3 + Amazon Textract.
+Caden Sliney & Jack Vermaak
 
----
+A personal expense tracker. Users register an account, log in, manually add expenses, or upload receipt photos that get scanned for the merchant, amount, and date.
 
-## Architecture Overview
-
-```
-User Browser
-     │
-     ▼
-[ EC2 Instance ]
-[ Docker Container: Flask + Gunicorn ]
-     │              │              │
-     ▼              ▼              ▼
-[ RDS PostgreSQL ] [ S3 Bucket ] [ Amazon Textract ]
- (expense data)    (receipts)    (OCR on receipts)
-     
-GitHub → GitHub Actions → ECR → EC2 (CI/CD)
-```
-
----
+Built with Flask, PostgreSQL, and AWS (EC2, RDS, S3, Textract).
 
 ## Tech Stack
 
-| Layer        | Technology                     |
-|--------------|--------------------------------|
-| Backend      | Flask 3 (Python)               |
-| Database     | PostgreSQL 16 on AWS RDS       |
-| Storage      | AWS S3                         |
-| OCR          | Amazon Textract                |
-| Hosting      | AWS EC2 (t3.micro) + Docker    |
-| CI/CD        | GitHub Actions + Amazon ECR    |
-| Rate Limiting| Flask-Limiter                  |
-
----
-
-## Local Development
-
-### Prerequisites
-- Docker & Docker Compose
-- AWS credentials (for S3 + Textract)
-
-### 1. Clone and configure
-```bash
-git clone https://github.com/YOUR_USERNAME/expense-tracker.git
-cd expense-tracker
-cp .env.example .env
-# Edit .env with your AWS credentials and S3 bucket name
-```
-
-### 2. Run locally
-```bash
-docker-compose up --build
-```
-App will be available at http://localhost:5000
-
-### 3. Run without Docker (bare Python)
-```bash
-python -m venv venv
-source venv/bin/activate      # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-export DATABASE_URL="postgresql://postgres:password@localhost:5432/expensedb"
-python run.py
-```
-
----
-
-## AWS Deployment
-
-### Required AWS Resources
-
-1. **EC2** — Amazon Linux 2023, t3.micro, with security group allowing HTTP (80) and SSH (22)
-2. **RDS** — PostgreSQL 16, db.t3.micro, in same VPC as EC2
-3. **S3** — Create a bucket (e.g. `my-expense-tracker-receipts`)
-4. **ECR** — Create repository named `expense-tracker`
-5. **IAM Role** — Attach to EC2 with:
-   - `AmazonS3FullAccess`
-   - `AmazonTextractFullAccess`
-   - `AmazonEC2ContainerRegistryReadOnly`
-
-### EC2 First-Time Setup
-```bash
-# SSH into your instance
-ssh -i your-key.pem ec2-user@YOUR_EC2_PUBLIC_IP
-
-# Install Docker
-sudo yum update -y
-sudo yum install -y docker
-sudo systemctl enable --now docker
-sudo usermod -aG docker ec2-user
-
-# Install AWS CLI
-sudo yum install -y awscli
-```
-
-### GitHub Secrets to Configure
-Set these in your GitHub repo → Settings → Secrets:
-
-| Secret                  | Value                                         |
-|-------------------------|-----------------------------------------------|
-| `AWS_ACCOUNT_ID`        | Your 12-digit AWS account ID                  |
-| `AWS_ACCESS_KEY_ID`     | IAM user key (for GitHub Actions CI only)     |
-| `AWS_SECRET_ACCESS_KEY` | IAM user secret                               |
-| `AWS_REGION`            | e.g. `us-east-1`                              |
-| `EC2_HOST`              | Your EC2 public IP or DNS                     |
-| `EC2_SSH_KEY`           | Contents of your `.pem` private key           |
-| `DATABASE_URL`          | Full RDS connection string                    |
-| `SECRET_KEY`            | Random string for Flask sessions              |
-| `S3_BUCKET`             | Your S3 bucket name                           |
-
-Push to `main` and GitHub Actions will build, push to ECR, and deploy automatically.
-
----
-
-## API Documentation
-
-Base URL: `http://YOUR_EC2_IP` (or `http://localhost:5000` locally)
-
-All endpoints return JSON. Rate limits are enforced per IP address.
-
----
-
-### `GET /health`
-Health check.
-
-**Response:**
-```json
-{ "status": "ok" }
-```
+- Flask 3 (Python) for the backend API
+- Flask-Login and bcrypt for authentication
+- PostgreSQL on AWS RDS for data storage
+- AWS S3 for receipt image storage
+- AWS Textract for OCR
+- Docker for containerization
+- Deployed on AWS EC2
+- CI/CD via GitHub Actions
 
----
+## Run Locally
 
-### `GET /api/expenses`
-Returns all expenses. Supports optional query filters.
+Requires Docker and Docker Compose.
 
-**Rate limit:** 60/minute
+    cp .env.example .env
+    docker compose up --build
 
-**Query Parameters:**
+Visit http://localhost:5000.
 
-| Param      | Type   | Description                          |
-|------------|--------|--------------------------------------|
-| `category` | string | Filter by category name              |
-| `month`    | string | Filter by month, format `YYYY-MM`    |
-| `start`    | string | Filter by start date `YYYY-MM-DD`    |
-| `end`      | string | Filter by end date `YYYY-MM-DD`      |
+## Live URL
 
-**Example request:**
-```
-GET /api/expenses?category=Food+%26+Dining&month=2024-06
-```
+http://YOUR_EC2_PUBLIC_IP
 
-**Example response:**
-```json
-[
-  {
-    "id": 1,
-    "merchant": "Starbucks",
-    "amount": 6.75,
-    "date": "2024-06-15",
-    "category": "Food & Dining",
-    "description": "Iced latte",
-    "receipt_url": "https://your-bucket.s3.amazonaws.com/receipts/...",
-    "created_at": "2024-06-15T14:22:10"
-  }
-]
-```
+# API Documentation
 
----
+All endpoints return JSON unless otherwise noted. Most endpoints require authentication via session cookie.
 
-### `POST /api/expenses`
-Creates a new expense manually.
+## Setting up Postman
 
-**Rate limit:** 30/minute
-
-**Request body (JSON):**
-```json
-{
-  "merchant": "Whole Foods",
-  "amount": 47.82,
-  "date": "2024-06-20",
-  "category": "Food & Dining",
-  "description": "Weekly groceries"
-}
-```
+1. Create a new collection called "CJExpenses".
+2. Create a Postman environment with a variable `base_url` set to your live URL (e.g. `http://YOUR_EC2_PUBLIC_IP`) or `http://localhost:5000` for local testing.
+3. Most endpoints require you to be logged in. Postman automatically stores and sends session cookies, so the workflow is: hit POST /login first, then send your other requests in the same Postman session.
 
-| Field         | Type    | Required | Description                  |
-|---------------|---------|----------|------------------------------|
-| `merchant`    | string  | ✅       | Store or vendor name          |
-| `amount`      | number  | ✅       | Positive decimal amount       |
-| `date`        | string  | ✅       | ISO date `YYYY-MM-DD`         |
-| `category`    | string  | No       | Defaults to `Uncategorized`   |
-| `description` | string  | No       | Optional notes                |
+## Authentication
 
-**Response:** `201 Created` with the created expense object.
+### POST /register
 
----
+Creates a new user account and logs them in automatically.
 
-### `GET /api/expenses/:id`
-Get a single expense by ID.
-
-**Rate limit:** 60/minute
-
-**Response:** Single expense object or `404`.
-
----
-
-### `PUT /api/expenses/:id`
-Update an existing expense. Only include fields you want to change.
-
-**Rate limit:** 30/minute
-
-**Request body (JSON):** Any subset of: `merchant`, `amount`, `date`, `category`, `description`
-
-**Response:** Updated expense object.
-
----
-
-### `DELETE /api/expenses/:id`
-Delete an expense permanently.
-
-**Rate limit:** 20/minute
-
-**Response:**
-```json
-{ "message": "Deleted", "id": 1 }
-```
-
----
-
-### `GET /api/expenses/summary`
-Returns aggregate statistics for charts and dashboard.
-
-**Rate limit:** 30/minute
-
-**Response:**
-```json
-{
-  "total": 342.50,
-  "count": 18,
-  "by_category": [
-    { "category": "Food & Dining", "total": 120.30 },
-    { "category": "Transportation", "total": 85.00 }
-  ],
-  "monthly": [
-    { "year": 2024, "month": 5, "total": 180.20 },
-    { "year": 2024, "month": 6, "total": 162.30 }
-  ]
-}
-```
-
----
-
-### `POST /api/upload`
-Upload a receipt image to S3, run Textract OCR, and save the parsed expense.
-
-**Rate limit:** 10/minute
-
-**Request:** `multipart/form-data`
-
-| Field         | Type   | Required | Description                         |
-|---------------|--------|----------|-------------------------------------|
-| `file`        | file   | ✅       | Image file (PNG, JPG, PDF, TIFF)    |
-| `category`    | string | No       | Override auto-detected category     |
-| `description` | string | No       | Optional note                       |
-
-**Response:** `201 Created`
-```json
-{
-  "message": "Receipt processed and expense saved.",
-  "expense": { ...expense object... },
-  "ocr_preview": "STARBUCKS\n123 Main St\nIced Latte    $6.75\nTotal         $6.75..."
-}
-```
-
----
-
-## Rate Limiting Summary
-
-| Endpoint                       | Limit        |
-|--------------------------------|--------------|
-| Global default                 | 200/day, 50/hr |
-| `GET /api/expenses`            | 60/min       |
-| `POST /api/expenses`           | 30/min       |
-| `PUT /api/expenses/:id`        | 30/min       |
-| `DELETE /api/expenses/:id`     | 20/min       |
-| `GET /api/expenses/summary`    | 30/min       |
-| `POST /api/upload`             | 10/min       |
-
----
-
-## Project Structure
-
-```
-expense-tracker/
-├── app/
-│   ├── __init__.py         # App factory, extensions init
-│   ├── models.py           # SQLAlchemy Expense model
-│   └── routes/
-│       ├── main.py         # Index page + health check
-│       ├── expenses.py     # CRUD + summary API
-│       └── uploads.py      # S3 upload + Textract OCR
-├── app/templates/
-│   └── index.html          # Full SPA dashboard frontend
-├── .github/
-│   └── workflows/
-│       └── deploy.yml      # GitHub Actions CI/CD
-├── Dockerfile              # Multi-stage production image
-├── docker-compose.yml      # Local dev with Postgres
-├── requirements.txt
-├── run.py                  # App entrypoint
-├── .env.example
-└── README.md
-```
+Auth required: No
+Rate limit: 5 per minute
+
+Request body (form-encoded):
+
+    email=test@example.com
+    password=password123
+    confirm_password=password123
+
+Response: 302 redirect to dashboard on success, or 400 with flash error on failure.
+
+Postman:
+- Method: POST
+- URL: {{base_url}}/register
+- Body tab, form-data, add three keys: email, password, confirm_password
+
+### POST /login
+
+Logs in an existing user. Sets a session cookie that Postman will use for subsequent requests.
+
+Auth required: No
+Rate limit: 5 per minute
+
+Request body (form-encoded):
+
+    email=test@example.com
+    password=password123
+
+Response: 302 redirect to dashboard on success, or 401 with flash error.
+
+Postman:
+- Method: POST
+- URL: {{base_url}}/login
+- Body tab, form-data, add two keys: email, password
+- After sending, Postman will store the session cookie for your domain
+
+### GET /logout
+
+Logs out the current user.
+
+Auth required: Yes
+
+Response: 302 redirect to login page.
+
+Postman:
+- Method: GET
+- URL: {{base_url}}/logout
+
+### GET /me
+
+Returns information about the currently logged-in user.
+
+Auth required: Yes
+
+Response 200:
+
+    {
+      "id": 1,
+      "email": "test@example.com",
+      "created_at": "2026-05-10T14:22:10"
+    }
+
+Postman:
+- Method: GET
+- URL: {{base_url}}/me
+
+## Expenses
+
+### GET /api/expenses
+
+Returns all expenses for the currently logged-in user.
+
+Auth required: Yes
+Rate limit: 60 per minute
+
+Query parameters (all optional):
+- category: filter by category name
+- month: filter by month, format YYYY-MM
+- start: filter by start date YYYY-MM-DD
+- end: filter by end date YYYY-MM-DD
+
+Response 200:
+
+    [
+      {
+        "id": 1,
+        "user_id": 1,
+        "merchant": "Starbucks",
+        "amount": 6.75,
+        "date": "2026-05-10",
+        "category": "Food & Dining",
+        "description": "Iced latte",
+        "receipt_url": "https://your-bucket.s3.amazonaws.com/receipts/...",
+        "created_at": "2026-05-10T14:22:10"
+      }
+    ]
+
+Postman:
+- Method: GET
+- URL: {{base_url}}/api/expenses
+- For filtered results, add query params under the Params tab (e.g. category=Food+%26+Dining&month=2026-05)
+
+### POST /api/expenses
+
+Creates a new expense manually for the logged-in user.
+
+Auth required: Yes
+Rate limit: 30 per minute
+
+Request body (JSON):
+
+    {
+      "merchant": "Whole Foods",
+      "amount": 47.82,
+      "date": "2026-05-10",
+      "category": "Food & Dining",
+      "description": "Weekly groceries"
+    }
+
+Required fields: merchant, amount, date
+Optional fields: category (defaults to "Uncategorized"), description
+
+Response 201: Created expense object.
+
+Postman:
+- Method: POST
+- URL: {{base_url}}/api/expenses
+- Headers tab, add Content-Type: application/json
+- Body tab, raw, JSON, paste the request body above
+
+### GET /api/expenses/:id
+
+Returns a single expense by ID. Only returns expenses owned by the current user.
+
+Auth required: Yes
+Rate limit: 60 per minute
+
+Response 200: Single expense object. Returns 404 if not found or not owned by the user.
+
+Postman:
+- Method: GET
+- URL: {{base_url}}/api/expenses/1
+
+### PUT /api/expenses/:id
+
+Updates an existing expense. Only include the fields you want to change.
+
+Auth required: Yes
+Rate limit: 30 per minute
+
+Request body (JSON):
+
+    {
+      "amount": 50.00,
+      "category": "Shopping"
+    }
+
+Any subset of: merchant, amount, date, category, description
+
+Response 200: Updated expense object.
+
+Postman:
+- Method: PUT
+- URL: {{base_url}}/api/expenses/1
+- Headers tab, add Content-Type: application/json
+- Body tab, raw, JSON, paste the fields to update
+
+### DELETE /api/expenses/:id
+
+Deletes an expense permanently.
+
+Auth required: Yes
+Rate limit: 20 per minute
+
+Response 200:
+
+    { "message": "Deleted", "id": 1 }
+
+Postman:
+- Method: DELETE
+- URL: {{base_url}}/api/expenses/1
+
+### GET /api/expenses/summary
+
+Returns aggregate statistics for the logged-in user's expenses, used by the dashboard charts.
+
+Auth required: Yes
+Rate limit: 30 per minute
+
+Response 200:
+
+    {
+      "total": 342.50,
+      "count": 18,
+      "by_category": [
+        { "category": "Food & Dining", "total": 120.30 },
+        { "category": "Transportation", "total": 85.00 }
+      ],
+      "monthly": [
+        { "year": 2026, "month": 4, "total": 180.20 },
+        { "year": 2026, "month": 5, "total": 162.30 }
+      ]
+    }
+
+Postman:
+- Method: GET
+- URL: {{base_url}}/api/expenses/summary
+
+## Uploads
+
+### POST /api/upload
+
+Uploads a receipt image to S3, runs Textract OCR on it, and creates a new expense from the extracted data.
+
+Auth required: Yes
+Rate limit: 10 per minute
+
+Request body (multipart/form-data):
+- file (required): image file (PNG, JPG, PDF, or TIFF)
+- category (optional): override the auto-detected category
+- description (optional): optional note
+
+Response 201:
+
+    {
+      "message": "Receipt processed and expense saved.",
+      "expense": { ... },
+      "ocr_preview": "STARBUCKS\n123 Main St\nIced Latte    $6.75..."
+    }
+
+If Textract fails, the expense is still saved with placeholder values and the response includes a warning.
+
+Postman:
+- Method: POST
+- URL: {{base_url}}/api/upload
+- Body tab, form-data, add a key called "file", change its type from Text to File (dropdown next to the key name), select a receipt image
+
+## Health Check
+
+### GET /health
+
+Simple health check endpoint, no auth required.
+
+Response 200:
+
+    { "status": "ok" }
+
+Postman:
+- Method: GET
+- URL: {{base_url}}/health
+
+# Rate Limits
+
+| Endpoint                  | Limit          |
+|---------------------------|----------------|
+| Global default            | 200/day, 50/hr |
+| POST /register            | 5/min          |
+| POST /login               | 5/min          |
+| GET /api/expenses         | 60/min         |
+| POST /api/expenses        | 30/min         |
+| GET /api/expenses/:id     | 60/min         |
+| PUT /api/expenses/:id     | 30/min         |
+| DELETE /api/expenses/:id  | 20/min         |
+| GET /api/expenses/summary | 30/min         |
+| POST /api/upload          | 10/min         |
+
+Rate limits are per IP address.
