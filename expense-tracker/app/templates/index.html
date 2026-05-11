@@ -391,12 +391,13 @@
 </head>
 <body>
 
-<nav>
+  <nav>
   <span class="brand">CJExpenses</span>
   <a class="nav-link active" onclick="goTo('dashboard', this)">Dashboard</a>
   <a class="nav-link"        onclick="goTo('expenses', this)">Expenses</a>
   <a class="nav-link"        onclick="openAdd()">+ Add</a>
   <a class="nav-link"        onclick="openUpload()">↑ Receipt</a>
+  <a class="nav-link" href="{{ url_for('auth.logout') }}">Log out</a>
 </nav>
 
 <!-- ── Dashboard ─────────────────────────────────────────────────────────── -->

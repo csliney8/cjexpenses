@@ -4,6 +4,7 @@ import re
 import boto3
 from datetime import datetime, date
 from flask import Blueprint, jsonify, request, current_app
+from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from app import db, limiter
 from app.models import Expense
@@ -26,10 +27,6 @@ def get_textract_client():
 
 
 def parse_textract_response(response):
-    """
-    Pull merchant, amount, and date hints from raw Textract LINE blocks.
-    Returns a dict with best-effort extracted fields.
-    """
     lines = [
         block["Text"]
         for block in response.get("Blocks", [])
@@ -37,11 +34,9 @@ def parse_textract_response(response):
     ]
     raw_text = "\n".join(lines)
 
-    # ── Amount: look for dollar amounts, take the largest (likely the total) ──
     amounts = re.findall(r"\$?\s?(\d{1,4}[.,]\d{2})", raw_text)
     amount = max([float(a.replace(",", "")) for a in amounts], default=None) if amounts else None
 
-    # ── Date: common formats ──────────────────────────────────────────────────
     date_patterns = [
         r"\b(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})\b",
         r"\b([A-Za-z]{3,9}\s+\d{1,2},?\s+\d{4})\b",
@@ -53,7 +48,6 @@ def parse_textract_response(response):
             detected_date = m.group(1)
             break
 
-    # ── Merchant: first non-blank line is usually the store name ─────────────
     merchant = next((l.strip() for l in lines if len(l.strip()) > 2), "Unknown Merchant")
 
     return {
@@ -64,8 +58,8 @@ def parse_textract_response(response):
     }
 
 
-# ── Upload receipt → S3 → Textract → RDS ─────────────────────────────────────
 @uploads_bp.route("/upload", methods=["POST"])
+@login_required
 @limiter.limit("10 per minute")
 def upload_receipt():
     bucket = current_app.config.get("S3_BUCKET", "")
@@ -81,7 +75,6 @@ def upload_receipt():
     if not allowed_file(file.filename):
         return jsonify({"error": "File type not allowed"}), 400
 
-    # ── 1. Upload to S3 ───────────────────────────────────────────────────────
     filename = secure_filename(file.filename)
     key = f"receipts/{uuid.uuid4()}_{filename}"
 
@@ -98,15 +91,14 @@ def upload_receipt():
 
     receipt_url = f"https://{bucket}.s3.amazonaws.com/{key}"
 
-    # ── 2. Run Textract OCR on the uploaded object ─────────────────────────
     textract = get_textract_client()
     try:
         response = textract.detect_document_text(
             Document={"S3Object": {"Bucket": bucket, "Name": key}}
         )
     except Exception as exc:
-        # Still save the expense — just without parsed data
         expense = Expense(
+            user_id=current_user.id,
             merchant="Unknown (OCR failed)",
             amount=0.00,
             date=date.today(),
@@ -121,10 +113,8 @@ def upload_receipt():
             "expense": expense.to_dict(),
         }), 201
 
-    # ── 3. Parse the OCR output ───────────────────────────────────────────────
     parsed = parse_textract_response(response)
 
-    # Resolve date string to a date object
     expense_date = date.today()
     if parsed["date_hint"]:
         for fmt in ("%m/%d/%Y", "%m-%d-%Y", "%m/%d/%y", "%B %d, %Y", "%b %d, %Y"):
@@ -133,18 +123,9 @@ def upload_receipt():
                 break
             except ValueError:
                 continue
-        else:
-            # datetime.strptime is on datetime, not date
-            from datetime import datetime as dt
-            for fmt in ("%m/%d/%Y", "%m-%d-%Y", "%m/%d/%y", "%B %d, %Y", "%b %d, %Y", "%B %d %Y"):
-                try:
-                    expense_date = dt.strptime(parsed["date_hint"], fmt).date()
-                    break
-                except ValueError:
-                    continue
 
-    # ── 4. Save parsed expense to RDS ─────────────────────────────────────────
     expense = Expense(
+        user_id=current_user.id,
         merchant=parsed["merchant"],
         amount=parsed["amount"] or 0.00,
         date=expense_date,

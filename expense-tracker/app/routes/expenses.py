@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+from flask_login import login_required, current_user
 from datetime import datetime, date
 from sqlalchemy import extract, func
 from app import db, limiter
@@ -13,15 +14,15 @@ VALID_CATEGORIES = [
 ]
 
 
-# ── List / filter expenses ────────────────────────────────────────────────────
+# List / filter expenses (only this user's)
 @expenses_bp.route("/expenses", methods=["GET"])
+@login_required
 @limiter.limit("60 per minute")
 def get_expenses():
-    query = Expense.query
+    query = Expense.query.filter_by(user_id=current_user.id)
 
-    # Optional filters
     category = request.args.get("category")
-    month = request.args.get("month")   # expects YYYY-MM
+    month = request.args.get("month")
     start = request.args.get("start")
     end = request.args.get("end")
 
@@ -51,8 +52,9 @@ def get_expenses():
     return jsonify([e.to_dict() for e in expenses])
 
 
-# ── Create expense manually ───────────────────────────────────────────────────
+# Create expense manually (assigned to current user)
 @expenses_bp.route("/expenses", methods=["POST"])
+@login_required
 @limiter.limit("30 per minute")
 def create_expense():
     data = request.get_json(force=True)
@@ -70,6 +72,7 @@ def create_expense():
         return jsonify({"error": "Invalid date or amount"}), 400
 
     expense = Expense(
+        user_id=current_user.id,
         merchant=data["merchant"].strip(),
         amount=amount,
         date=expense_date,
@@ -81,19 +84,21 @@ def create_expense():
     return jsonify(expense.to_dict()), 201
 
 
-# ── Get single expense ────────────────────────────────────────────────────────
+# Get single expense (only if owned by current user)
 @expenses_bp.route("/expenses/<int:expense_id>", methods=["GET"])
+@login_required
 @limiter.limit("60 per minute")
 def get_expense(expense_id):
-    expense = Expense.query.get_or_404(expense_id)
+    expense = Expense.query.filter_by(id=expense_id, user_id=current_user.id).first_or_404()
     return jsonify(expense.to_dict())
 
 
-# ── Update expense ────────────────────────────────────────────────────────────
+# Update expense (only if owned by current user)
 @expenses_bp.route("/expenses/<int:expense_id>", methods=["PUT"])
+@login_required
 @limiter.limit("30 per minute")
 def update_expense(expense_id):
-    expense = Expense.query.get_or_404(expense_id)
+    expense = Expense.query.filter_by(id=expense_id, user_id=current_user.id).first_or_404()
     data = request.get_json(force=True)
 
     if "merchant" in data:
@@ -118,38 +123,45 @@ def update_expense(expense_id):
     return jsonify(expense.to_dict())
 
 
-# ── Delete expense ────────────────────────────────────────────────────────────
+# Delete expense (only if owned by current user)
 @expenses_bp.route("/expenses/<int:expense_id>", methods=["DELETE"])
+@login_required
 @limiter.limit("20 per minute")
 def delete_expense(expense_id):
-    expense = Expense.query.get_or_404(expense_id)
+    expense = Expense.query.filter_by(id=expense_id, user_id=current_user.id).first_or_404()
     db.session.delete(expense)
     db.session.commit()
     return jsonify({"message": "Deleted", "id": expense_id})
 
 
-# ── Summary / analytics ────────────────────────────────────────────────────────
+# Summary / analytics (scoped to current user)
 @expenses_bp.route("/expenses/summary", methods=["GET"])
+@login_required
 @limiter.limit("30 per minute")
 def get_summary():
-    # Total and count
-    total = db.session.query(func.sum(Expense.amount)).scalar() or 0
-    count = Expense.query.count()
+    base = Expense.query.filter_by(user_id=current_user.id)
 
-    # By category
+    total = (
+        db.session.query(func.sum(Expense.amount))
+        .filter(Expense.user_id == current_user.id)
+        .scalar() or 0
+    )
+    count = base.count()
+
     by_category = (
         db.session.query(Expense.category, func.sum(Expense.amount).label("total"))
+        .filter(Expense.user_id == current_user.id)
         .group_by(Expense.category)
         .all()
     )
 
-    # Monthly totals (last 6 months)
     monthly = (
         db.session.query(
             extract("year", Expense.date).label("year"),
             extract("month", Expense.date).label("month"),
             func.sum(Expense.amount).label("total"),
         )
+        .filter(Expense.user_id == current_user.id)
         .group_by("year", "month")
         .order_by("year", "month")
         .limit(12)

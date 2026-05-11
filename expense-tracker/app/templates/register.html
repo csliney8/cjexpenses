@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register — CJExpenses</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:          #e8e0d0;
+      --bg-card:     #f0ead8;
+      --bg-input:    #ede7d6;
+      --green:       #2d5a3d;
+      --green-mid:   #3d7a54;
+      --green-light: #5a9e72;
+      --green-pale:  #c8dcd0;
+      --border:      #c4baa8;
+      --border-soft: #d4cdbf;
+      --text:        #1e2d22;
+      --muted:       #7a7060;
+      --red:         #8b2e2e;
+      --white:       #f7f2e8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      padding: 1rem;
+    }
+    .brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      color: var(--green);
+      letter-spacing: 0.02em;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .card {
+      background: var(--bg-card);
+      padding: 2.5rem;
+      border-radius: 10px;
+      border: 1px solid var(--border-soft);
+      box-shadow: 0 8px 32px rgba(30,45,34,0.12);
+      width: 100%;
+      max-width: 420px;
+    }
+    h1 {
+      font-family: 'Playfair Display', serif;
+      margin: 0 0 0.4rem;
+      color: var(--green);
+      font-size: 1.75rem;
+      font-weight: 600;
+    }
+    .subtitle {
+      color: var(--muted);
+      margin-bottom: 1.75rem;
+      font-size: 0.92rem;
+    }
+    label {
+      display: block;
+      color: var(--text);
+      font-size: 0.88rem;
+      font-weight: 500;
+      margin-bottom: 0.4rem;
+    }
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 0.7rem 0.85rem;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
+      color: var(--text);
+      margin-bottom: 1.1rem;
+      transition: border-color 0.15s;
+    }
+    input:focus {
+      outline: none;
+      border-color: var(--green-mid);
+    }
+    .hint {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: -0.85rem;
+      margin-bottom: 1.1rem;
+    }
+    button {
+      width: 100%;
+      padding: 0.8rem;
+      background: var(--green);
+      color: var(--bg-card);
+      border: none;
+      border-radius: 6px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.98rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 0.25rem;
+    }
+    button:hover { background: var(--green-mid); }
+    .footer {
+      text-align: center;
+      margin-top: 1.5rem;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+    .footer a {
+      color: var(--green-mid);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .footer a:hover {
+      text-decoration: underline;
+      color: var(--green);
+    }
+    .flash {
+      padding: 0.7rem 0.9rem;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+      font-size: 0.88rem;
+    }
+    .flash-error {
+      background: rgba(139,46,46,0.08);
+      color: var(--red);
+      border: 1px solid rgba(139,46,46,0.25);
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <div class="brand">CJExpenses</div>
+    <div class="card">
+      <h1>Create an account</h1>
+      <p class="subtitle">Start tracking your expenses with CJExpenses.</p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, msg in messages %}
+          <div class="flash flash-{{ category }}">{{ msg }}</div>
+        {% endfor %}
+      {% endwith %}
+
+      <form method="POST" action="{{ url_for('auth.register') }}">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required autofocus />
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required minlength="8" />
+        <p class="hint">At least 8 characters.</p>
+
+        <label for="confirm_password">Confirm password</label>
+        <input type="password" id="confirm_password" name="confirm_password" required minlength="8" />
+
+        <button type="submit">Create account</button>
+      </form>
+
+      <p class="footer">
+        Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>
