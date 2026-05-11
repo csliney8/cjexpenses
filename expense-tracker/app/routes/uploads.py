@@ -129,7 +129,7 @@ def upload_receipt():
         merchant=parsed["merchant"],
         amount=parsed["amount"] or 0.00,
         date=expense_date,
-        category=request.form.get("category", "Uncategorized"),
+        category=(request.form.get("category") or "Uncategorized"),
         description=request.form.get("description", ""),
         receipt_url=receipt_url,
         raw_ocr_text=parsed["raw_text"],
